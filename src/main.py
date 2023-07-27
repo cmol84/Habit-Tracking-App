@@ -45,16 +45,14 @@ def create_habit():
 
 @cli.command()
 def sync_tasks():
-    for habit in db.select_executable_habits():
-        # TODO: Move this into its own function
-        if habit.get('task_count') == 0:
-            for task in habit.get('template'):
-                db.create_task(habit.get('id_habit'), task)
+    for habit in db.check_task_status():
+        task_list = db.select_tasks(habit.get('id_habit'))
+        db.generate_report(habit, task_list)
 
-    # TODO: select all the tasks that are either over the periodicity or the tasks are completed
-    #  and when true create a report that says habit achieved and streak updated
-    # TODO: delete outdated or completed tasks either from task or habit perspective
-    # TODO: insert data into reports before deleting the data
+    for habit in db.select_habits_to_fulfill():
+        # TODO: Move this into its own function
+        for task in habit.get('template'):
+            db.create_task(habit.get('id_habit'), task)
 
 
 @cli.command()
@@ -68,12 +66,13 @@ def delete_habit():
     ))
     while True:
         id_habit = click.prompt('Please type the ID of the habit you want to delete', type=int)
-        click.confirm(f'Are you sure you want to delete the Habit with ID: {id_habit}? '
-                      f'Please note that this will recursively delete all tasks belonging to '
-                      f'the provided habit!')
+        if click.confirm(
+                f'Are you sure you want to delete the Habit with ID: {id_habit}? '
+                f'Please note that this will recursively delete all tasks belonging to '
+                f'the provided habit!'):
+            db.delete_habit(id_habit)
         if not click.confirm('Do you want to delete another one?'):
             break
-    db.delete_habit(id_habit)
 
 
 @cli.command()
@@ -84,22 +83,86 @@ def complete_task():
         habit_name = row.get('name')
         if last_habit != habit_name:
             print(habit_name)
-        print(f"[ ] {row.get('id_task'), row.get('task')}")
+        checked = 'x' if row.get('completed') else ' '
+        print(f"- [{checked}] [{row.get('id_task')}] {row.get('task')}")
         last_habit = habit_name
     while True:
-        id_task = click.prompt(
-            'Please provide the task ID you want to mark as completed', type=int)
+        id_task = click.prompt('Please provide the task ID you want to mark as completed', type=int)
+        if id_task:
+            db.update_completed(id_task)
         if not click.confirm('Do you want to select another one?'):
             break
-    db.update_completed(id_task)
-
-
-# TODO: add checkbox and set an X if completed == true
 
 
 @cli.command()
 def analyse_data():
-    pass
+    table = [
+        ['1', 'List all habits'],
+        ['2', 'List all habits with the same periodicity'],
+        ['3', 'Longest run streak of all defined habits'],
+        ['4', 'Shortest run streak of all defined habits'],
+        ['5', 'Longest run streak for a given habit'],
+    ]
+    print(tabulate(
+        table,
+        tablefmt="fancy_outline",
+        headers=["Report ID", "Report Name"]))
+    match click.prompt('Please provide the Report ID of the report you want execute', type=int):
+        case 1:
+            table = db.select_habits(row_factory=as_array)
+            print(tabulate(
+                table,
+                tablefmt="fancy_outline",
+                headers=["ID", "Name", "Periodicity", "Streak", "Tasks", "Completed"]
+            ))
+
+        case 2:
+            periodicity_options = [
+                v.name for v in list(Periodicity)
+            ]
+            periodicity = click.prompt(
+                'Please enter the habit Periodicity',
+                type=click.Choice(periodicity_options, case_sensitive=False)
+            )
+            table = db.report_same_period(periodicity, row_factory=as_array)
+
+            print(tabulate(
+                table,
+                tablefmt="fancy_outline",
+                headers=["Periodicity", "Habit Name"]))
+
+        case 3:
+            table = db.report_longest_streak(row_factory=as_array)
+
+            print(tabulate(
+                table,
+                tablefmt="fancy_outline",
+                headers=["Habit Name", "Streak"]))
+
+        case 4:
+            table = db.report_shortest_streak(row_factory=as_array)
+
+            print(tabulate(
+                table,
+                tablefmt="fancy_outline",
+                headers=["Habit Name", "Streak"]))
+
+        case 5:
+            table = db.get_habit_list_snapshot(row_factory=as_array)
+            print(tabulate(
+                table,
+                tablefmt="fancy_outline",
+                headers=["Habit ID", "Habit Name"]))
+
+            id_habit = click.prompt(
+                'Please provide the Habit ID for which you want execute the report', type=int)
+
+            table = db.report_longest_streak_given_habit(id_habit, row_factory=as_array)
+
+            print(tabulate(
+                table,
+                tablefmt="fancy_outline",
+                headers=["Habit Name", "Streak"]))
 
 
 if __name__ == "__main__":
