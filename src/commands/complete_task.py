@@ -13,7 +13,7 @@ db = DB()
 @cli.command()
 def complete_task():
     """
-    This is where users can mark tasks as done.
+    Mark tasks as completed.
 
     This code defines a command-line interface (CLI) command called `complete_task`.
     When this command is executed, it first displays a list of all tasks in the database,

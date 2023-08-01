@@ -13,7 +13,7 @@ db = DB()
 @cli.command()
 def list_habits():
     """
-    This creates a list of habits currently available.
+    Display an overview of all habits.
 
     This code defines a function called list_habits that retrieves a list of
     habits from a database and displays them in a formatted table using the

@@ -13,7 +13,7 @@ db = DB()
 @cli.command()
 def create_habit():
     """
-    This is where users can create a new habit.
+    Create new habits here.
 
     This code defines a command-line interface (CLI) command called `create_habit`.
     When this command is executed, it prompts the user to enter a new habit name,
@@ -38,6 +38,6 @@ def create_habit():
     task_template = []
     while True:
         task_template.append(click.prompt('Please provide the task for your habit', type=str))
-        if not click.confirm('Do you want to continue?'):
+        if not click.confirm('Do you want to add more tasks?'):
             break
     db.create_habit(name, Periodicity[periodicity.upper()], task_template)

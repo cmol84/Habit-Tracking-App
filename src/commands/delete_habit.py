@@ -14,7 +14,7 @@ db = DB()
 @cli.command()
 def delete_habit():
     """
-    This is where users can delete habits.
+    Delete existing habits.
 
     This code defines a command-line interface (CLI) command called `delete_habit`.
     When this command is executed, it first displays a list of all currently active

@@ -25,6 +25,10 @@ latest version of Python [here](https://www.python.org/downloads/).
 pytest = ">=7.4"
 
 ### How To:
+Clone the repository to your preferred location and cd into it. 
+Run the command  
+```❯ pipenv run main```  
+If any packages are missing, please install them with ```pipenv install <package>```
 
 ## Usage and Main Functionalities
 

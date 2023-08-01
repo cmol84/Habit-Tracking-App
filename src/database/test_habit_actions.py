@@ -13,7 +13,7 @@ testdata = [
     ('name', Periodicity.MONTHLY),
 ]
 
-"""THis test ensures that habits with all options for periodicity are inserted and subsequently 
+"""This test ensures that habits with all options for periodicity are inserted and subsequently 
 removed from the database"""
 
 

@@ -13,7 +13,7 @@ db = DB()
 @cli.command()
 def analyse_data():
     """
-    This is the place where reports are generated.
+    Generate and display reports.
 
     The `analyse_data()` function displays a list of available reports and prompts the user
     to select a report to execute. It then uses the appropriate methods of the `db` object to
@@ -33,7 +33,7 @@ def analyse_data():
         table,
         tablefmt="fancy_outline",
         headers=["Report ID", "Report Name"]))
-    match click.prompt('Please provide the Report ID of the report you want execute', type=int):
+    match click.prompt('Please provide the Report ID of the report you want to execute', type=int):
         case 1:
             table = db.select_habits(row_factory=as_array)
             print(tabulate(
@@ -58,22 +58,7 @@ def analyse_data():
                 headers=["Periodicity", "Habit Name"]))
 
         case 3:
-            table = db.report_longest_streak(row_factory=as_array)
 
-            print(tabulate(
-                table,
-                tablefmt="fancy_outline",
-                headers=["Habit Name", "Streak"]))
-
-        case 4:
-            table = db.report_shortest_streak(row_factory=as_array)
-
-            print(tabulate(
-                table,
-                tablefmt="fancy_outline",
-                headers=["Habit Name", "Streak"]))
-
-        case 5:
             table = db.get_habit_list_snapshot(row_factory=as_array)
             print(tabulate(
                 table,
@@ -81,9 +66,27 @@ def analyse_data():
                 headers=["Habit ID", "Habit Name"]))
 
             id_habit = click.prompt(
-                'Please provide the Habit ID for which you want execute the report', type=int)
+                'Please provide the Habit ID for which you want to execute the report', type=int)
 
             table = db.report_longest_streak_given_habit(id_habit, row_factory=as_array)
+
+            print(tabulate(
+                table,
+                tablefmt="fancy_outline",
+                headers=["Habit Name", "Streak"]))
+
+        case 4:
+
+            table = db.report_longest_streak(row_factory=as_array)
+
+            print(tabulate(
+                table,
+                tablefmt="fancy_outline",
+                headers=["Habit Name", "Streak"]))
+
+        case 5:
+
+            table = db.report_shortest_streak(row_factory=as_array)
 
             print(tabulate(
                 table,

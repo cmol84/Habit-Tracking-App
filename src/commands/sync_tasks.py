@@ -15,7 +15,7 @@ db = DB()
 @cli.command()
 def sync_tasks():
     """
-    This is where tasks are automatically generated and report data synced.
+    Generate tasks and fill in report data automatically.
 
     This code defines a command-line interface (CLI) command called `sync_tasks`.
     When this command is executed, it performs the following actions:
