@@ -38,5 +38,4 @@ def sync_tasks():
         db.generate_report(habit, task_list)
 
     for habit in db.select_habits_to_fulfill():
-        for task in habit.get('template'):
-            db.create_task(habit.get('id_habit'), task)
+        db.create_task_from_habit(habit)

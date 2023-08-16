@@ -142,7 +142,7 @@ class DB:
         self.connection.row_factory = row_factory
         self.cursor = self.connection.cursor()
 
-    def create_habit(self, name: str, periodicity: Periodicity, task_template: list[str]):
+    def create_habit(self, name: str, periodicity: Periodicity, task_template: list[str]) -> dict:
         """ Creates a new habit in the database.
 
         Args:
@@ -158,6 +158,9 @@ class DB:
             '''INSERT INTO habits (name, periodicity, template) VALUES(?, ?, ?)''',
             (name, periodicity.value, json.dumps(task_template)))
         self.connection.commit()
+        query = self.cursor.execute(
+            '''SELECT * FROM habits where name = ?''', [name])
+        return query.fetchone()
 
     def delete_habit(self, id_habit: int):
         """ Deletes a habit and its associated tasks from the database.
@@ -185,17 +188,29 @@ class DB:
         where (select count(*) from tasks where id_habit = h.id_habit) = 0;''')
         return query.fetchall()
 
-    def select_habits(self, row_factory=as_dictionary):
+    def select_habits(
+            self,
+            query_fields='id_habit, name, periodicity, streak',
+            id_habit=None,
+            row_factory=as_dictionary
+    ):
         """ Selects all habits from the database.
 
         Args:
             row_factory (function, optional): The function to use as the row factory.
             Defaults to `as_dictionary`.
+            query_fields: string of fields to select from the habits table
+            id_habit: number or None to filter the query by id
 
-        Returns: list[dict]: A list of dictionaries representing habits."""
+        Returns: list[dict]: A list of dictionaries representing habits.
+        """
         self._set_row_factory(row_factory)
-        query = self.cursor.execute('''
-            SELECT id_habit, name, periodicity, streak FROM habits;''')
+        statement = f'SELECT {query_fields} FROM habits '
+        if id_habit is not None:
+            statement += 'where id_habit = ?'
+            query = self.cursor.execute(statement, [id_habit])
+            return query.fetchall()
+        query = self.cursor.execute(statement)
         return query.fetchall()
 
     def select_tasks(self, id_habit=None, row_factory=as_dictionary):
@@ -454,3 +469,7 @@ class DB:
             select id_habit, name  from reports r group by id_habit;
         ''')
         return query.fetchall()
+
+    def create_task_from_habit(self, habit):
+        for task in habit.get('template'):
+            self.create_task(habit.get('id_habit'), task)

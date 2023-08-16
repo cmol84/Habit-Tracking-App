@@ -55,7 +55,19 @@ def generate_test_data():
             task_list
         ])
 
-    return [testdata_list_habits]
+    habits_without_tasks = []
+    for _ in range(10):
+        name = fake.word()
+        periods = ([Periodicity.DAILY, Periodicity.WEEKLY, Periodicity.MONTHLY])
+        periodicity = random.choice(periods)
+        task_list = []
+        habits_without_tasks.append([
+            name,
+            periodicity,
+            task_list
+        ])
+
+    return [testdata_list_habits, habits_without_tasks]
 
 
 @pytest.mark.parametrize("habits", generate_test_data())
