@@ -5,6 +5,7 @@ from faker import Faker
 from typing import List, Tuple
 import random
 import json
+from .habit import Habit
 
 fake = Faker()
 Faker.seed(1)
@@ -22,10 +23,12 @@ removed from the database"""
 @pytest.mark.parametrize("name,periodicity", testdata)
 def test_daily_habit_actions(db_connection, name: str, periodicity: Periodicity):
     # create new habit and check it's inserted correctly
-    db_connection.create_habit(name, periodicity, [])
+    # db_connection.create_habit(name, periodicity, [])
+    habit_instance = Habit(name, periodicity, [], db=db_connection).save()
     statement = db_connection.cursor.execute('''SELECT * FROM habits;''')
     result = statement.fetchall()
 
+    assert len(result) > 0
     row: dict = result[0]
     assert row["name"] == name
     assert row["periodicity"] == periodicity.value
@@ -33,9 +36,7 @@ def test_daily_habit_actions(db_connection, name: str, periodicity: Periodicity)
     # check that there is 1 record
     assert len(result) == 1
     # delete record
-    db_connection.delete_habit(row.get('id_habit'))
-    # check db to be empty
-
+    habit_instance.delete()
     result = statement.fetchall()
     assert len(result) == 0
 
@@ -74,19 +75,19 @@ def generate_test_data():
 def test_list_habits(db_connection, habits):
     inserted_names = []
     for row in habits:
-        db_connection.create_habit(row[0], row[1], row[2])
+        Habit(row[0], row[1], row[2], db=db_connection).save()
         inserted_names.append(row[0])
 
     query = db_connection.cursor.execute('''SELECT * FROM habits;''')
     db_result = query.fetchall()
-    api_result = db_connection.select_habits()
+    api_result = list(Habit.objects(db_connection))
 
     assert len(habits) == len(db_result)
     assert len(api_result) == len(db_result)
 
     api_names = []
     for item in api_result:
-        api_names.append(item.get('name'))
+        api_names.append(item.name)
 
     for index, row in enumerate(db_result):
         assert row.get('name') in inserted_names

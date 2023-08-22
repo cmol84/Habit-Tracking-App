@@ -4,10 +4,8 @@ a series of prompts to get the correct information when creating the habit.
 """
 
 import click
-from database.db import DB, Periodicity
 from cli import cli
-
-db = DB()
+from database import Habit, Periodicity
 
 
 @cli.command()
@@ -40,4 +38,4 @@ def create_habit():
         task_template.append(click.prompt('Please provide the task for your habit', type=str))
         if not click.confirm('Do you want to add more tasks?'):
             break
-    db.create_habit(name, Periodicity[periodicity.upper()], task_template)
+    Habit(name, Periodicity[periodicity.upper()], task_template).save()

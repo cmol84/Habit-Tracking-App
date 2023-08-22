@@ -4,8 +4,9 @@ This command executes all the predefined reports users can access.
 
 import click
 from tabulate import tabulate
-from database.db import DB, Periodicity, as_array
+
 from cli import cli
+from database import DB, Periodicity, as_array
 
 db = DB()
 

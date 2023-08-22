@@ -6,10 +6,8 @@ templates provided in the habit creation so that you can follow up on the progre
 """
 
 import click
-from database.db import DB
 from cli import cli
-
-db = DB()
+from database import Task, Habit, Report
 
 
 @cli.command()
@@ -33,9 +31,8 @@ def sync_tasks():
     It also generates reports for any incomplete habits and creates new tasks
     for any habit that needs to be fulfilled.
     """
-    for habit in db.sync_states():
-        task_list = db.select_tasks(habit.get('id_habit'))
-        db.generate_report(habit, task_list)
+    for habit in Habit.objects(finished=True):
+        Report(habit.id_habit).generate()
 
-    for habit in db.select_habits_to_fulfill():
-        db.create_task_from_habit(habit)
+    for habit in Habit.objects(no_tasks=True):
+        Task.from_habit(habit)

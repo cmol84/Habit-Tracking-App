@@ -5,10 +5,8 @@ As soon as that is provided and action confirmed, the habit and all of its tasks
 """
 import click
 from tabulate import tabulate
-from database.db import DB, as_array
 from cli import cli
-
-db = DB()
+from database import Habit, Task
 
 
 @cli.command()
@@ -30,7 +28,7 @@ def delete_habit():
     provided habit, and then deletes the habit itself.
     """
     print("Here is the list of currently active habits:")
-    table = db.select_habits(row_factory=as_array)
+    table = [item.as_tabulate() for item in Habit.objects()]
     print(tabulate(
         table,
         tablefmt="fancy_outline",

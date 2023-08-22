@@ -27,7 +27,7 @@ pytest minimum version 7.4.
 ### How To:
 Clone the repository to your preferred location and cd into it. 
 Run the command  
-```❯ pipenv run main```  
+```pipenv run main```  
 If any packages are missing, please install them with ```pipenv install <package>```
 
 ## Usage and Main Functionalities
@@ -86,3 +86,6 @@ To abort any command at any point in the process, just execute ```control + c```
        Tells you what your longest daily and longest weekly streak are among all your habits.
     5. Shortest run streak of all defined habits
        Tells you what your shortest streak is among all your habits.
+
+4. Test execution:
+    1. Generating data for the required 4 weeks period of habits and tasks to enable testing.

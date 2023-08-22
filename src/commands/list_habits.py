@@ -4,10 +4,8 @@ This command generates a list of habits with their main attributes.
 
 import click
 from tabulate import tabulate
-from database.db import DB, as_array
 from cli import cli
-
-db = DB()
+from database import Habit
 
 
 @cli.command()
@@ -27,7 +25,7 @@ def list_habits():
     style, and the headers for the table are specified as well.
     The resulting table is printed to the console.
     """
-    table = db.select_habits(row_factory=as_array)
+    table = [item.as_tabulate() for item in Habit.objects()]
     print(tabulate(
         table,
         tablefmt="fancy_outline",
