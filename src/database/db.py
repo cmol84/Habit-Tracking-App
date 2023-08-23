@@ -3,8 +3,11 @@ The database module: Primarily creates database tables, stores information and r
 """
 import json
 import sqlite3
+from pathlib import Path
+from .types import Periodicity
 
 DATE_FORMAT = '%Y-%m-%d %H:%M:%S'
+DB_PATH = Path(__file__).parent.parent.parent.resolve()
 
 
 def as_dictionary(cursor, row):
@@ -47,7 +50,7 @@ class DB:
             name (str, optional): The name of the database to create or connect with.
             Defaults to "habit_tracking_app.db"."""
 
-        self.connection = sqlite3.connect(name)
+        self.connection = sqlite3.connect(f'{DB_PATH}/{name}')
         self._set_row_factory()
         self._migrate()
 

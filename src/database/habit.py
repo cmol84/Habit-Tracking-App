@@ -1,20 +1,10 @@
-from dataclasses import dataclass
-from enum import Enum
-from datetime import datetime
-from .db import DB, DATE_FORMAT
 import json
+from dataclasses import dataclass
+from datetime import datetime, timedelta
 from typing import Generator, Self
 
-
-class Periodicity(Enum):
-    """ An enumeration class representing the periodicity of a habit.
-    Attributes:
-        DAILY (str): Represents a habit that occurs every day.
-        WEEKLY (str): Represents a habit that occurs every week.
-        MONTHLY (str): Represents a habit that occurs every month."""
-    DAILY = 'Every Day'
-    WEEKLY = 'Every Week'
-    MONTHLY = 'Every Month'
+from .db import DB, DATE_FORMAT
+from .types import Periodicity
 
 
 @dataclass
@@ -56,6 +46,7 @@ class Habit:
             no_tasks=False,
             filter_habit=None,
             finished=False,
+            timestamp=datetime.now(),
             db: DB = DB()
     ) -> Generator:
         """
@@ -70,6 +61,7 @@ class Habit:
             db (DB, optional): Database connection object. Defaults to DB().
             filter_habit: Defined query filter.
             finished: selects finished habits, regardless of state.
+            timestamp: datetime=datetime.now(): internal override for test data generation
 
         Yields:
             Generator: A generator yielding instances of Habit mapped from the database rows.
@@ -89,16 +81,19 @@ class Habit:
             q_filter.append(f'id_habit = {filter_habit.id_habit}')
 
         if finished:
-            q_filter.append('''
+            past_day = timestamp - timedelta(days=1)
+            past_week = timestamp - timedelta(days=7)
+            past_month = timestamp - timedelta(days=30)
+            q_filter.append(f'''
             (
-                (updated_at <= datetime('now', '-1 DAY', 'LOCALTIME')
-                    and periodicity = 'Every Day')
+                (updated_at <= '{past_day.strftime(DATE_FORMAT)}'
+                    and periodicity = '{Periodicity.DAILY}')
                 or
-                (updated_at <= datetime('now', '-1 WEEK', 'LOCALTIME')
-                    and periodicity = 'Every Week')
+                (updated_at <= '{past_week.strftime(DATE_FORMAT)}'
+                    and periodicity = '{Periodicity.WEEKLY}')
                 or
-                (updated_at <= datetime('now', '-1 MONTH', 'LOCALTIME')
-                    and periodicity = 'Every Month')
+                (updated_at <= '{past_month.strftime(DATE_FORMAT)}'
+                    and periodicity = '{Periodicity.MONTHLY}')
                 or
                 (select count(*) from tasks 
                 where completed is not TRUE and id_habit = h.id_habit) = 0 
@@ -106,7 +101,7 @@ class Habit:
             ''')
 
         where = f'where {" and ".join(q_filter)}' if len(q_filter) > 0 else ''
-        query = (db.cursor.execute(f'SELECT * FROM habits h {where}'))
+        query = db.cursor.execute(f'SELECT * FROM habits h {where}')
         for row in query.fetchall():
             yield Habit._map_db(row, db=db)
 
@@ -139,6 +134,26 @@ class Habit:
             updated_at=datetime.strptime(row.get('updated_at'), DATE_FORMAT),
             db=db,
         )
+
+    @staticmethod
+    def get(id_habit: int, db: DB = DB()):
+        """
+            Retrieve a Habit object from the database based on the given habit ID.
+
+            Parameters:
+            - id_habit (int): The ID of the habit to retrieve.
+            - db (DB, optional): The database connection. Defaults to a new DB instance.
+
+            Returns:
+            Habit or None: A Habit object representing the retrieved habit if found,
+            or None if not found."""
+
+        query = db.cursor.execute(
+            '''SELECT * FROM habits where id_habit = ?''',
+            [id_habit]
+        )
+        row = query.fetchone()
+        return Habit._map_db(row, db=db)
 
     def as_tabulate(self) -> list:
         """
@@ -182,14 +197,31 @@ class Habit:
                 DatabaseError: If there's an issue with executing the database
                 queries or committing changes.
             """
-        self.db.cursor.execute(
-            '''REPLACE INTO habits 
-            (name, periodicity, template, id_habit, streak, created_at, updated_at) 
-            VALUES(?, ?, ?, ?, ?, ?, ?)''',
-            (self.name, self.periodicity.value, json.dumps(self.template), self.id_habit,
-             self.streak, self.created_at.strftime(DATE_FORMAT),
-             self.updated_at.strftime(DATE_FORMAT)))
+        value_list = [
+            self.name,
+            self.periodicity.value,
+            json.dumps(self.template),
+            self.id_habit,
+            self.streak,
+            self.created_at.strftime(DATE_FORMAT),
+            self.updated_at.strftime(DATE_FORMAT)
+        ]
+        if self.id_habit is not None:
+            value_list.append(self.id_habit)
+            self.db.cursor.execute(
+                '''UPDATE habits SET name=?, periodicity=?, template=?, id_habit=?, streak=?, 
+                created_at=?, updated_at=? 
+                where id_habit=?''', value_list
+            )
+        else:
+            self.db.cursor.execute(
+                '''REPLACE INTO habits 
+                (name, periodicity, template, id_habit, streak, created_at, updated_at) 
+                VALUES(?, ?, ?, ?, ?, ?, ?)''',
+                value_list
+            )
         self.db.connection.commit()
+
         query = self.db.cursor.execute(
             '''SELECT * FROM habits where name = ?''', [self.name])
         raw_data = query.fetchone()
@@ -213,7 +245,7 @@ class Habit:
             ReferenceError: If the instance has not been saved yet."""
         if self.id_habit is None:
             raise ReferenceError(
-                f'This instance has not been saved yet so you cannot delete it!')
+                'This instance has not been saved yet so you cannot delete it!')
         self.db.cursor.execute(
             '''DELETE FROM tasks WHERE id_habit = ?''',
             [self.id_habit]
@@ -224,23 +256,3 @@ class Habit:
         )
         self.db.connection.commit()
         return self
-
-    @staticmethod
-    def get(id_habit: int, db: DB = DB()):
-        """
-            Retrieve a Habit object from the database based on the given habit ID.
-
-            Parameters:
-            - id_habit (int): The ID of the habit to retrieve.
-            - db (DB, optional): The database connection. Defaults to a new DB instance.
-
-            Returns:
-            Habit or None: A Habit object representing the retrieved habit if found,
-            or None if not found."""
-
-        query = db.cursor.execute(
-            '''SELECT * FROM habits where id_habit = ?''',
-            [id_habit]
-        )
-        row = query.fetchone()
-        return Habit._map_db(row, db=db)

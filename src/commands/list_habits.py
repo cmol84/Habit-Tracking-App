@@ -2,8 +2,8 @@
 This command generates a list of habits with their main attributes.
 """
 
-import click
 from tabulate import tabulate
+
 from cli import cli
 from database import Habit
 

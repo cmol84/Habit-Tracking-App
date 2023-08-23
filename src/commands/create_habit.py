@@ -4,6 +4,7 @@ a series of prompts to get the correct information when creating the habit.
 """
 
 import click
+
 from cli import cli
 from database import Habit, Periodicity
 

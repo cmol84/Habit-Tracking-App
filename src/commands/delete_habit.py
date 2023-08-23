@@ -5,8 +5,9 @@ As soon as that is provided and action confirmed, the habit and all of its tasks
 """
 import click
 from tabulate import tabulate
+
 from cli import cli
-from database import Habit, Task
+from database import Habit
 
 
 @cli.command()
@@ -38,8 +39,8 @@ def delete_habit():
         id_habit = click.prompt('Please type the ID of the habit you want to delete', type=int)
         if click.confirm(
                 f'Are you sure you want to delete the Habit with ID: {id_habit}? '
-                f'Please note that this will recursively delete all tasks belonging to '
-                f'the provided habit!'):
-            db.delete_habit(id_habit)
+                'Please note that this will recursively delete all tasks belonging to '
+                'the provided habit!'):
+            Habit.delete(id_habit)
         if not click.confirm('Do you want to delete another one?'):
             break

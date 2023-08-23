@@ -5,7 +5,6 @@ be later on queried to generate the visualised reports. It will also generate th
 templates provided in the habit creation so that you can follow up on the progress.
 """
 
-import click
 from cli import cli
 from database import Task, Habit, Report
 

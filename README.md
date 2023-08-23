@@ -88,4 +88,5 @@ To abort any command at any point in the process, just execute ```control + c```
        Tells you what your shortest streak is among all your habits.
 
 4. Test execution:
-    1. Generating data for the required 4 weeks period of habits and tasks to enable testing.
+    1. Generating data for the required 4 weeks period of habits and tasks to enable testing:
+       execute command `pipenv run generate` 

@@ -6,7 +6,7 @@ import click
 from tabulate import tabulate
 
 from cli import cli
-from database import DB, Periodicity, as_array
+from database import DB, Periodicity, as_array, Habit
 
 db = DB()
 
@@ -36,9 +36,8 @@ def analyse_data():
         headers=["Report ID", "Report Name"]))
     match click.prompt('Please provide the Report ID of the report you want to execute', type=int):
         case 1:
-            table = db.select_habits(row_factory=as_array)
             print(tabulate(
-                table,
+                [h.as_tabulate() for h in Habit.objects()],
                 tablefmt="fancy_outline",
                 headers=["ID", "Name", "Periodicity", "Streak", "Tasks", "Completed"]
             ))

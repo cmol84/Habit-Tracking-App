@@ -1,9 +1,38 @@
-import pytest
-import functools as func
+"""
+This module provides a function for testing the report generation process.
+
+It contains the following function:
+  - test_report_generation(db_connection):
+
+    This function tests the report generation
+    process by creating a Habit, associated Tasks, generating reports, and verifying the
+    outcomes. It takes a database connection as a parameter.
+
+Usage:
+  from database import Habit, Task, Report, Periodicity
+  from this_module import test_report_generation
+  db_connection = ...  # create a database connection
+  test_report_generation(db_connection)
+"""
+
 from database import Habit, Task, Report, Periodicity
 
 
 def test_report_generation(db_connection):
+    """
+    Test the report generation process for a Habit instance.
+
+    This method performs a series of actions to test the generation of reports
+    for a Habit instance and its associated tasks. It checks the behavior of
+    generating reports, updating task completions, and verifying streak counts.
+
+    Args:
+        db_connection (DatabaseConnection): A connection to the database.
+
+    Raises:
+        AssertionError: Raised if any of the test assertions fail.
+    """
+
     habit = Habit(
         'Habit 1 overdue',
         Periodicity.DAILY,

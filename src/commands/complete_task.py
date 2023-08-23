@@ -4,9 +4,9 @@ completed, either by providing task ids one by one or a list of multiple tasks.
 """
 
 import click
-from database.db import DB
+
 from cli import cli
-from database import Habit, Task
+from database import Task
 
 
 @cli.command()
@@ -38,6 +38,8 @@ def complete_task():
     while True:
         id_task = click.prompt('Please provide the task ID you want to mark as completed', type=int)
         if id_task:
-            db.update_completed(id_task)
+            task = Task.get(id_task)
+            task.completed = True
+            task.save()
         if not click.confirm('Do you want to select another one?'):
             break

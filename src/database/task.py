@@ -1,8 +1,8 @@
-import json
 from dataclasses import dataclass
 from datetime import datetime
-from .db import DB, DATE_FORMAT
 from typing import Generator, Self
+
+from .db import DB, DATE_FORMAT
 from .habit import Habit
 
 
@@ -86,7 +86,7 @@ class Task:
                 [habit.id_habit]
             )
         else:
-            query = (db.cursor.execute('SELECT * FROM tasks'))
+            query = db.cursor.execute('SELECT * FROM tasks')
         for row in query.fetchall():
             yield Task._map_task(row, db=db)
 
@@ -152,7 +152,7 @@ class Task:
         """
 
         self.db.cursor.execute(
-            '''INSERT INTO tasks 
+            '''REPLACE INTO tasks 
             (id_habit, task, completed, id_task, created_at, updated_at) 
             VALUES(?, ?, ?, ?, ?, ?)''',
             (self.id_habit, self.task, self.completed, self.id_task,
@@ -216,19 +216,19 @@ class Task:
         return Task._map_task(row, db=db)
 
     def to_json(self):
-        return json.dumps({
+        return {
             'id_habit': self.id_habit,
             'task': self.task,
             'completed': self.completed,
             'id_task': self.id_task,
             'created_at': self.created_at.strftime(DATE_FORMAT),
             'updated_at': self.updated_at.strftime(DATE_FORMAT),
-        })
+        }
 
     def delete(self):
         if self.id_task is None:
             raise ReferenceError(
-                f'This instance has not been saved yet so you cannot delete it!')
+                'This instance has not been saved yet so you cannot delete it!')
         self.db.cursor.execute(
             '''DELETE FROM tasks WHERE id_task = ?''',
             [self.id_task]

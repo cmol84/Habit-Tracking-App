@@ -2,7 +2,7 @@ import os
 
 import pytest
 
-from database.db import DB
+from database import DB
 
 
 @pytest.fixture(scope='function', autouse=True)
